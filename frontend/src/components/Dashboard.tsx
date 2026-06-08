@@ -1,9 +1,11 @@
 import { useAuth } from '../firebase/AuthContext';
+import { useAdmin } from '../hooks/useAdmin';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
 export default function Dashboard() {
   const { currentUser, logout } = useAuth();
+  const { isAdmin } = useAdmin();
   const navigate = useNavigate();
 
   async function handleLogout() {
@@ -62,10 +64,21 @@ export default function Dashboard() {
           <div className="card-icon">⚙️</div>
           <h2>Account Settings</h2>
           <p>Manage your profile and security settings</p>
-          <button className="btn-action" disabled>
-            Coming Soon
+          <button onClick={() => navigate('/settings')} className="btn-action">
+            Open Settings
           </button>
         </div>
+
+        {isAdmin && (
+          <div className="dashboard-card admin-card">
+            <div className="card-icon">🛡️</div>
+            <h2>Admin Panel</h2>
+            <p>Create and manage customer portal accounts</p>
+            <button onClick={() => navigate('/admin')} className="btn-action btn-admin">
+              Manage Accounts
+            </button>
+          </div>
+        )}
       </main>
 
       <footer className="dashboard-footer">

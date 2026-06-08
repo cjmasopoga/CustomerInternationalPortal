@@ -4,7 +4,10 @@ import Login from './components/Login'
 import Dashboard from './components/Dashboard'
 import Payment from './components/Payment'
 import TransactionHistory from './components/TransactionHistory'
+import AccountSettings from './components/AccountSettings'
+import AdminPanel from './components/AdminPanel'
 import ProtectedRoute from './components/ProtectedRoute'
+import AdminRoute from './components/AdminRoute'
 import './App.css'
 
 function App() {
@@ -41,6 +44,22 @@ function App() {
           <ProtectedRoute>
             <TransactionHistory />
           </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <AccountSettings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <AdminRoute>
+            <AdminPanel />
+          </AdminRoute>
         }
       />
     </Routes>

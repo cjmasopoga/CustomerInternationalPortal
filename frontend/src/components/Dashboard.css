@@ -139,3 +139,16 @@
 .security-badge svg {
   color: #48bb78;
 }
+
+.admin-card {
+  border: 2px solid rgba(239, 68, 68, 0.25);
+  background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
+}
+
+.btn-admin {
+  background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+}
+
+.btn-admin:hover:not(:disabled) {
+  box-shadow: 0 5px 20px rgba(229, 62, 62, 0.4);
+}
