@@ -134,3 +134,48 @@
 .auth-link:hover {
   text-decoration: underline;
 }
+
+.success-alert {
+  background-color: #c6f6d5;
+  border: 1px solid #68d391;
+  color: #276749;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.password-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.btn-forgot {
+  background: none;
+  border: none;
+  color: #667eea;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: none;
+}
+
+.btn-forgot:hover {
+  text-decoration: underline;
+}
+
+.btn-text-link {
+  background: none;
+  border: none;
+  color: #667eea;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.btn-text-link:hover {
+  text-decoration: underline;
+}
