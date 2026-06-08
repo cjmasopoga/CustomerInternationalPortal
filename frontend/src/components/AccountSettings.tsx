@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   updateProfile,
@@ -6,7 +6,8 @@ import {
   EmailAuthProvider,
   reauthenticateWithCredential
 } from 'firebase/auth';
-import { auth } from '../firebase/config';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase/config';
 import { useAuth } from '../firebase/AuthContext';
 import './AccountSettings.css';
 
@@ -26,6 +27,18 @@ export default function AccountSettings() {
   const [passSuccess, setPassSuccess] = useState('');
   const [passError, setPassError] = useState('');
   const [passLoading, setPassLoading] = useState(false);
+
+  const [mustChange, setMustChange] = useState(false);
+
+  // Check whether this customer must change their temporary password
+  useEffect(() => {
+    if (!currentUser) return;
+    getDoc(doc(db, 'customers', currentUser.uid)).then((snap) => {
+      if (snap.exists() && snap.data()?.mustChangePassword) {
+        setMustChange(true);
+      }
+    }).catch(() => {/* non-customer accounts (admins) won't have this doc */});
+  }, [currentUser]);
 
   async function handleUpdateName(e: React.FormEvent) {
     e.preventDefault();
@@ -70,7 +83,19 @@ export default function AccountSettings() {
       );
       await reauthenticateWithCredential(auth.currentUser, credential);
       await updatePassword(auth.currentUser, newPassword);
-      setPassSuccess('Password updated successfully.');
+
+      // If this was a forced first-login change, clear the flag in Firestore
+      if (mustChange) {
+        await updateDoc(doc(db, 'customers', currentUser.uid), {
+          mustChangePassword: false
+        });
+        setMustChange(false);
+        setPassSuccess('Password updated. Redirecting to your dashboard…');
+        setTimeout(() => navigate('/dashboard'), 1800);
+      } else {
+        setPassSuccess('Password updated successfully.');
+      }
+
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -89,14 +114,23 @@ export default function AccountSettings() {
   return (
     <div className="settings-container">
       <div className="settings-header">
-        <button className="back-btn" onClick={() => navigate('/dashboard')}>
-          ← Back to Dashboard
-        </button>
+        {!mustChange && (
+          <button className="back-btn" onClick={() => navigate('/dashboard')}>
+            ← Back to Dashboard
+          </button>
+        )}
         <h1>Account Settings</h1>
         <p className="settings-subtitle">
           Manage your profile and security credentials
         </p>
       </div>
+
+      {mustChange && (
+        <div className="must-change-banner">
+          🔐 <strong>Action required:</strong> You are using a temporary password.
+          Please set a new password before continuing.
+        </div>
+      )}
 
       <div className="settings-grid">
         {/* Profile section */}

@@ -2,10 +2,11 @@ import { initializeApp, deleteApp } from 'firebase/app';
 import {
   getAuth,
   createUserWithEmailAndPassword,
-  updateProfile
+  updateProfile,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { doc, setDoc, collection, getDocs, serverTimestamp } from 'firebase/firestore';
-import { firebaseConfig, db } from './config';
+import { firebaseConfig, db, auth } from './config';
 
 export interface CustomerRecord {
   uid: string;
@@ -16,17 +17,32 @@ export interface CustomerRecord {
 }
 
 /**
+ * Generates a cryptographically random temporary password.
+ * Uses Web Crypto API — available in all modern browsers and Node 19+.
+ */
+function generateTempPassword(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
+  const array = new Uint8Array(14);
+  crypto.getRandomValues(array);
+  return Array.from(array, (byte) => chars[byte % chars.length]).join('');
+}
+
+/**
  * Creates a new customer account using a temporary secondary Firebase app
- * instance. This prevents the admin from being signed out of their own session
- * when createUserWithEmailAndPassword is called.
+ * instance (so the admin is never signed out of their own session).
+ * A cryptographically random temporary password is generated and the account
+ * is created with it. A Firebase password-reset email is immediately sent to
+ * the customer so they can set their own password before first login.
+ * The `mustChangePassword` flag is stored in Firestore so the portal can
+ * enforce a password-change step on first login.
  */
 export async function createCustomerAccount(
   displayName: string,
   email: string,
-  password: string,
   adminUid: string
 ): Promise<CustomerRecord> {
-  // Spin up a secondary (temporary) Firebase app — isolated from the main auth
+  const tempPassword = generateTempPassword();
+
   const secondaryApp = initializeApp(firebaseConfig, `admin-create-${Date.now()}`);
   const secondaryAuth = getAuth(secondaryApp);
 
@@ -34,7 +50,7 @@ export async function createCustomerAccount(
     const credential = await createUserWithEmailAndPassword(
       secondaryAuth,
       email,
-      password
+      tempPassword
     );
 
     await updateProfile(credential.user, { displayName });
@@ -47,15 +63,18 @@ export async function createCustomerAccount(
       createdBy: adminUid
     };
 
-    // Persist customer metadata in Firestore so the admin can see the list
     await setDoc(doc(db, 'customers', credential.user.uid), {
       ...record,
+      mustChangePassword: true,
       createdAt: serverTimestamp()
     });
 
+    // Send the Firebase "set your password" email using the main auth instance.
+    // The customer receives a secure link to set their own password.
+    await sendPasswordResetEmail(auth, email);
+
     return record;
   } finally {
-    // Always clean up the secondary app to avoid memory leaks
     await secondaryAuth.signOut();
     await deleteApp(secondaryApp);
   }
@@ -75,3 +94,4 @@ export async function listCustomers(): Promise<CustomerRecord[]> {
     };
   });
 }
+

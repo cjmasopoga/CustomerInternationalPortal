@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '../firebase/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase/config';
 import './Auth.css';
 
 type View = 'login' | 'forgot';
@@ -28,8 +30,14 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
-      navigate('/dashboard');
+      const userCredential = await login(email, password);
+      // Check whether the customer must change their temporary password
+      const customerSnap = await getDoc(doc(db, 'customers', userCredential.uid));
+      if (customerSnap.exists() && customerSnap.data()?.mustChangePassword) {
+        navigate('/settings');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: unknown) {
       const code = (err as { code?: string })?.code;
       if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {

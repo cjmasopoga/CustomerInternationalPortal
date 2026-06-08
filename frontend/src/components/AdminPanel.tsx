@@ -24,7 +24,6 @@ export default function AdminPanel() {
 
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
   const [createSuccess, setCreateSuccess] = useState('');
@@ -53,8 +52,8 @@ export default function AdminPanel() {
       setCreateError('Display name is required.');
       return;
     }
-    if (password.length < 8) {
-      setCreateError('Password must be at least 8 characters.');
+    if (!email.trim()) {
+      setCreateError('Email address is required.');
       return;
     }
 
@@ -63,13 +62,11 @@ export default function AdminPanel() {
       await createCustomerAccount(
         displayName.trim(),
         email.trim(),
-        password,
         currentUser!.uid
       );
-      setCreateSuccess(`Account for ${displayName.trim()} created successfully.`);
+      setCreateSuccess(`Account created for ${displayName.trim()}. A password setup email has been sent to ${email.trim()}.`);
       setDisplayName('');
       setEmail('');
-      setPassword('');
       await refreshList();
     } catch (err: unknown) {
       const code = (err as { code?: string })?.code;
@@ -105,7 +102,8 @@ export default function AdminPanel() {
         <section className="admin-card">
           <h2>Create Customer Account</h2>
           <p className="card-hint">
-            The customer will use these credentials to sign in to the portal.
+            A secure temporary password is generated automatically and a setup
+            link is emailed directly to the customer.
           </p>
           <form onSubmit={handleCreate} noValidate>
             <div className="form-group">
@@ -129,19 +127,8 @@ export default function AdminPanel() {
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="off"
               />
-            </div>
-            <div className="form-group">
-              <label htmlFor="a-password">Temporary Password</label>
-              <input
-                id="a-password"
-                type="password"
-                placeholder="Min. 8 characters"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="new-password"
-              />
               <span className="field-hint">
-                Advise the customer to change this on first login.
+                A password setup link will be emailed to this address automatically.
               </span>
             </div>
             {createError && <p className="error-msg">{createError}</p>}

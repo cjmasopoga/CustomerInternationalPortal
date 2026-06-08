@@ -14,7 +14,7 @@ interface AuthContextType {
   currentUser: User | null;
   loading: boolean;
   signup: (email: string, password: string, displayName: string) => Promise<void>;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
 }
@@ -48,8 +48,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
-  function login(email: string, password: string) {
-    return signInWithEmailAndPassword(auth, email, password).then(() => {});
+  function login(email: string, password: string): Promise<User> {
+    return signInWithEmailAndPassword(auth, email, password).then((cred) => cred.user);
   }
 
   function logout() {
