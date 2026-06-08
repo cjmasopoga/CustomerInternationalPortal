@@ -27,7 +27,7 @@ export default function Dashboard() {
     <div className="dashboard-container">
       <header className="dashboard-header">
         <div className="header-content">
-          <h1>Customer International Portal</h1>
+          <h1>Employee International Payments Portal</h1>
           <div className="header-actions">
             <span className="user-info">
               Welcome, {currentUser?.displayName || currentUser?.email}

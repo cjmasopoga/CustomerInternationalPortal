@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '../firebase/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './Auth.css';
 
 export default function Login() {
@@ -33,8 +33,8 @@ export default function Login() {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h2 className="auth-title">Welcome Back</h2>
-        <p className="auth-subtitle">Login to Customer International Portal</p>
+        <h2 className="auth-title">Employee Portal</h2>
+        <p className="auth-subtitle">International Payments Portal — Authorised Staff Only</p>
 
         {error && (
           <div className="error-alert" role="alert">
@@ -51,7 +51,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              placeholder="Enter your email"
+              placeholder="Enter your work email"
               autoComplete="email"
             />
           </div>
@@ -79,11 +79,9 @@ export default function Login() {
         </form>
 
         <div className="auth-footer">
-          <p>
-            Don't have an account?{' '}
-            <Link to="/register" className="auth-link">
-              Register here
-            </Link>
+          <p className="auth-admin-note">
+            🔒 Access is restricted to authorised employees only.<br />
+            Contact your administrator if you need an account.
           </p>
         </div>
       </div>

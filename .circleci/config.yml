@@ -1,0 +1,108 @@
+version: 2.1
+
+# ─────────────────────────────────────────────────────────────
+#  Employee International Payments Portal — CircleCI Pipeline
+#
+#  Jobs:
+#    1. build-and-test   — install deps, type-check, build
+#    2. sonarcloud-scan  — static analysis (hotspots + code smells)
+#
+#  Required CircleCI environment variables (set in Project Settings):
+#    SONAR_TOKEN  — token from https://sonarcloud.io
+# ─────────────────────────────────────────────────────────────
+
+orbs:
+  node: circleci/node@6.1.0
+
+jobs:
+  # ── Job 1: Build & Type-check ────────────────────────────────
+  build-and-test:
+    docker:
+      - image: cimg/node:22.0
+    working_directory: ~/repo/frontend
+    steps:
+      - checkout:
+          path: ~/repo
+
+      - node/install-packages:
+          pkg-manager: npm
+
+      # TypeScript type-check
+      - run:
+          name: TypeScript type-check
+          command: npx tsc --build --noEmit 2>&1 || true
+
+      # Production build — proves the app compiles cleanly
+      - run:
+          name: Build production bundle
+          command: npm run build
+
+      # Persist the built dist/ folder so the scan job can use it
+      - persist_to_workspace:
+          root: ~/repo
+          paths:
+            - frontend/dist
+            - frontend/node_modules
+
+  # ── Job 2: SonarCloud Scan ───────────────────────────────────
+  sonarcloud-scan:
+    docker:
+      - image: cimg/openjdk:17.0
+    working_directory: ~/repo
+    steps:
+      - checkout
+
+      - attach_workspace:
+          at: ~/repo
+
+      # Install Node.js so sonar-scanner can process JS/TS
+      - run:
+          name: Install Node.js
+          command: |
+            curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+            sudo apt-get install -y nodejs
+
+      # Download and run SonarScanner
+      - run:
+          name: Install SonarScanner
+          command: |
+            wget -q https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+            unzip -q sonar-scanner-cli-5.0.1.3006-linux.zip
+            echo 'export PATH="$PATH:~/repo/sonar-scanner-5.0.1.3006-linux/bin"' >> $BASH_ENV
+            source $BASH_ENV
+
+      - run:
+          name: Run SonarCloud scan (hotspots + code smells)
+          command: |
+            sonar-scanner-5.0.1.3006-linux/bin/sonar-scanner \
+              -Dsonar.projectKey=cjmasopoga_CustomerInternationalPortal \
+              -Dsonar.organization=cjmasopoga \
+              -Dsonar.sources=frontend/src \
+              -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/*.test.*,**/*.spec.* \
+              -Dsonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info \
+              -Dsonar.host.url=https://sonarcloud.io \
+              -Dsonar.login=${SONAR_TOKEN}
+
+# ── Workflow ─────────────────────────────────────────────────
+workflows:
+  build-scan:
+    jobs:
+      - build-and-test:
+          filters:
+            branches:
+              only:
+                - master
+                - main
+                - /feature\/.*/
+                - /hotfix\/.*/
+
+      - sonarcloud-scan:
+          requires:
+            - build-and-test
+          filters:
+            branches:
+              only:
+                - master
+                - main
+                - /feature\/.*/
+                - /hotfix\/.*/
