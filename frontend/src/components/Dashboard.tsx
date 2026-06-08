@@ -27,7 +27,7 @@ export default function Dashboard() {
     <div className="dashboard-container">
       <header className="dashboard-header">
         <div className="header-content">
-          <h1>Employee International Payments Portal</h1>
+          <h1>Customer International Payments Portal</h1>
           <div className="header-actions">
             <span className="user-info">
               Welcome, {currentUser?.displayName || currentUser?.email}
@@ -73,7 +73,7 @@ export default function Dashboard() {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
           </svg>
-          <span>Secured by Firebase Authentication</span>
+          <span>Secured by Firebase Authentication · Accounts managed by Admin</span>
         </div>
       </footer>
     </div>

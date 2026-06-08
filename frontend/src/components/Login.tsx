@@ -33,8 +33,8 @@ export default function Login() {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h2 className="auth-title">Employee Portal</h2>
-        <p className="auth-subtitle">International Payments Portal — Authorised Staff Only</p>
+        <h2 className="auth-title">Customer International Payments Portal</h2>
+        <p className="auth-subtitle">Secure international payments — authorised customers only</p>
 
         {error && (
           <div className="error-alert" role="alert">
@@ -51,7 +51,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              placeholder="Enter your work email"
+              placeholder="Enter your email"
               autoComplete="email"
             />
           </div>
@@ -80,8 +80,8 @@ export default function Login() {
 
         <div className="auth-footer">
           <p className="auth-admin-note">
-            🔒 Access is restricted to authorised employees only.<br />
-            Contact your administrator if you need an account.
+            🔒 Access is by invitation only.<br />
+            Contact your account manager if you need access.
           </p>
         </div>
       </div>
